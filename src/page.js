@@ -1,21 +1,21 @@
-import React from 'react';
-import { withRouter } from 'react-router';
+import React from "react";
+import { withRouter } from "react-router";
 
-import Grid from '@material-ui/core/Grid';
+import Grid from "@material-ui/core/Grid";
 
-import * as _ from 'lodash';
-import $ from 'jquery';
+import * as _ from "lodash";
+import $ from "jquery";
 
-import Path from './path';
-import Table from './table';
-import Sort from './sort';
+import Path from "./path";
+import Table from "./table";
+import Sort from "./sort";
 
 let timeout;
 class Page extends React.Component {
-  getDefaultState = () => ({ data: [], columns: [], maxValues: {}, uniqueValues: {} });
+  getDefaultState = () => ({ data: [], columns: [], uniqueValues: {} });
   state = this.getDefaultState();
   getDefaultConfig = () => ({
-    path: '',
+    path: "",
     sorted: [],
     filtered: [],
     page: 0,
@@ -43,19 +43,6 @@ class Page extends React.Component {
     $.getJSON(config.path).done(data => {
       if (_.isArray(data)) {
         const columns = _.uniq(_.flatten(_.map(data, value => _.keys(value))));
-        const maxValues = {};
-        for (let c = 0; c < columns.length; c++) {
-          maxValues[columns[c]] = null;
-          for (let d = 0; d < data.length; d++) {
-            let value = _.toNumber(data[d][columns[c]]);
-            if (
-              !_.isNumber(maxValues[columns[c]]) ||
-              maxValues[columns[c]] < value
-            ) {
-              maxValues[columns[c]] = value;
-            }
-          }
-        }
         const uniqueValues = {};
         _.each(columns, column => {
           uniqueValues[column] = uniqueValues[column] || [];
@@ -64,7 +51,8 @@ class Page extends React.Component {
             row => row[column]
           );
         });
-        this.setState({ data, columns, maxValues, uniqueValues });
+
+        this.setState({ data, columns, uniqueValues });
       }
     });
   }
@@ -85,11 +73,48 @@ class Page extends React.Component {
     this.load();
   }
   render() {
+    const { data, columns } = this.state;
     const config = this.getConfig();
+    const { filtered } = config;
+
+    const maxValues = {};
+    const filteredData = _.filter(data, row => {
+      var filter;
+      for (var f = 0; f < filtered.length; f++) {
+        filter = filtered[f];
+        if (filter.value) {
+          if (filter.value.allowed && filter.value.allowed.length) {
+            if (!_.includes(filter.value.allowed, row[filter.id])) return false;
+          }
+          if (filter.value.regexp) {
+            try {
+              if (!new RegExp(filter.value.regexp).test(row[filter.id]))
+                return false;
+            } catch (error) {}
+          }
+        }
+      }
+
+      for (let c = 0; c < columns.length; c++) {
+        maxValues[columns[c]] = maxValues[columns[c]] || 0;
+        let value = parseFloat(row[columns[c]]);
+        if (
+          !_.isNumber(maxValues[columns[c]]) ||
+          maxValues[columns[c]] < value
+        ) {
+          maxValues[columns[c]] = value;
+        }
+      }
+
+      return true;
+    });
+
     const args = {
       ...this.state,
       config,
-      saveConfig: this.saveConfig
+      saveConfig: this.saveConfig,
+      data: filteredData,
+      maxValues
     };
 
     return (
