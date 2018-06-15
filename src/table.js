@@ -3,136 +3,9 @@ import React from "react";
 import ReactTable from "react-table";
 import "react-table/react-table.css";
 
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-
-import Button from "@material-ui/core/Button";
-
-import Paper from "@material-ui/core/Paper";
-
-import FilterList from "@material-ui/icons/FilterList";
-
-import TextField from "@material-ui/core/TextField";
-
 import * as _ from "lodash";
 
-class FilterComponent extends React.Component {
-  state = {
-    open: false,
-    anchorEl: null
-  };
-  onClose = () => this.setState({ open: false });
-  render() {
-    const { anchorEl, open } = this.state;
-    const { config: { filtered }, column, onChange, uniqueValues } = this.props;
-
-    const filteredColumn = _.find(filtered, { id: column }) || {
-      id: column,
-      value: {
-        allowed: [],
-        regexp: ""
-      }
-    };
-    if (!_.isObject(filteredColumn.value)) filteredColumn.value = {};
-    if (!_.isArray(filteredColumn.value.allowed))
-      filteredColumn.value.allowed = [];
-    if (!_.isString(filteredColumn.value.regexp))
-      filteredColumn.value.regexp = "";
-
-    return (
-      <span>
-        <TextField
-          value={filteredColumn.value.regexp}
-          placeholder="regexp"
-          onChange={event => {
-            filteredColumn.value.regexp = event.target.value;
-            onChange(filteredColumn.value);
-          }}
-          margin="dense"
-          fullWidth
-          style={{
-            marginTop: 0
-          }}
-          InputProps={{
-            startAdornment: (
-              <Button
-                size="small"
-                style={{
-                  textTransform: "none",
-                  minWidth: 30,
-                  minHeight: 0,
-                  padding: 0
-                }}
-                onClick={event => {
-                  this.setState({
-                    anchorEl: event.target,
-                    open: !open
-                  });
-                }}
-              >
-                <FilterList
-                  color={
-                    filteredColumn.value.allowed.length
-                      ? "secondary"
-                      : "inherit"
-                  }
-                />
-              </Button>
-            )
-          }}
-        />
-        <Menu
-          anchorEl={anchorEl}
-          open={open}
-          onClose={this.onClose}
-          PaperProps={{
-            style: {
-              maxHeight: 200,
-              width: 200
-            }
-          }}
-          MenuListProps={{
-            style: {
-              paddingTop: 0
-            }
-          }}
-        >
-          <Paper
-            style={{
-              position: "sticky",
-              top: 0,
-              zIndex: 2
-            }}
-          >
-            <MenuItem
-              onClick={() => {
-                filteredColumn.value.allowed = [];
-                onChange(filteredColumn.value);
-              }}
-            >
-              Unselet all
-            </MenuItem>
-          </Paper>
-          {uniqueValues[column].map(value => (
-            <MenuItem
-              key={`key-${value}`}
-              selected={_.includes(filteredColumn.value.allowed, value)}
-              dense={true}
-              onClick={() => {
-                const index = filteredColumn.value.allowed.indexOf(value);
-                if (index > -1) filteredColumn.value.allowed.splice(index, 1);
-                else filteredColumn.value.allowed.push(value);
-                onChange(filteredColumn.value);
-              }}
-            >
-              {value}
-            </MenuItem>
-          ))}
-        </Menu>
-      </span>
-    );
-  }
-}
+import Filter from "./filter";
 
 class Table extends React.Component {
   generateColumns = () => {
@@ -145,7 +18,7 @@ class Table extends React.Component {
         return true;
       },
       Filter: ({ filter, onChange }) => (
-        <FilterComponent {...this.props} column={column} onChange={onChange} />
+        <Filter {...this.props} column={column} onChange={onChange} />
       ),
       Cell: row => {
         return (
@@ -199,7 +72,6 @@ class Table extends React.Component {
         onSortedChange={this.onSortedChange}
         sorted={sorted}
         onFilteredChange={this.onFilteredChange}
-        filtered={filtered}
         filterable
         defaultSortMethod={(a, b, desc) => {
           // force null and undefined to the bottom

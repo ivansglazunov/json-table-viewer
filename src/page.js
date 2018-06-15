@@ -1,6 +1,8 @@
 import React from "react";
 import { withRouter } from "react-router";
 
+import { withStyles } from "@material-ui/core/styles";
+
 import Grid from "@material-ui/core/Grid";
 
 import * as _ from "lodash";
@@ -83,8 +85,13 @@ class Page extends React.Component {
       for (var f = 0; f < filtered.length; f++) {
         filter = filtered[f];
         if (filter.value) {
-          if (filter.value.allowed && filter.value.allowed.length) {
-            if (!_.includes(filter.value.allowed, row[filter.id])) return false;
+          if (filter.value.list && filter.value.type) {
+            if (filter.value.type === "allowed") {
+              if (!_.includes(filter.value.list, row[filter.id])) return false;
+            }
+            if (filter.value.type === "denied") {
+              if (_.includes(filter.value.list, row[filter.id])) return false;
+            }
           }
           if (filter.value.regexp) {
             try {
