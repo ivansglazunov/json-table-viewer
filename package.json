@@ -5,7 +5,7 @@
     "@material-ui/core": "1.2.0",
     "@material-ui/icons": "latest",
     "jquery": "3.3.1",
-    "lodash": "4.17.10",
+    "lodash": "4.17.19",
     "normalize.css": "8.0.0",
     "react": "16.4.0",
     "react-dom": "16.4.0",
